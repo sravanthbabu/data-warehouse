@@ -1,0 +1,95 @@
+---creating dates
+
+create table Dates
+(id int primary key not null,
+Dates datetime,
+year_id int
+)
+
+
+create procedure form_dates
+as
+declare @start_date date = '01-01-1992'
+declare @end_date date = '12-31-2024'
+declare @count int =0
+declare @year int =1992
+declare @year_id int = 1 
+while @start_date <= @end_date
+	begin
+		insert into Dates values(@count+1,@start_date,@year_id)
+		set @count = @count+1
+		set @start_date = dateadd(day,1,@start_date)
+		if @year <> year(@start_date)
+			set @year_id = @year_id+1
+			set @year = year(@start_date)
+	end
+
+
+exec form_dates
+
+select * from dates
+
+---creating years
+
+create table Years 
+(
+year_id int not null identity(1,1) primary key,
+years int not null 
+)
+
+
+insert into Years
+select distinct(year(Dates)) from Dates
+order by year(Dates)
+
+select * from Years
+
+--- creating quaters
+
+
+create table quaters
+(quater_id int identity(1,1) primary key,
+year_id int not null,
+quater_number int not null,
+foreign key (year_id) references years(year_id))
+
+
+
+insert into quaters
+select distinct(y.year_id),datename(qq,d.dates)
+from years y join dates d on y.year_id = d.year_id
+order by year_id
+
+
+select * from quaters
+
+
+---create months
+
+create table months
+(month_id int not null primary key identity(1,1),
+month_number int ,
+month_name varchar(20),
+year_id int not null,
+quater_id int not null,
+foreign key (year_id) references years(year_id),
+foreign key (quater_id) references quaters(quater_id)
+);
+
+
+insert into months
+select distinct(month(d.dates)),datename(month,d.dates),d.year_id,datename(qq,d.dates)
+from  dates d join years y on y.year_id = d.year_id 
+order by d.year_id
+
+
+
+select * from months
+
+
+
+
+
+
+
+
